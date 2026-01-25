@@ -8,11 +8,19 @@ from transformers import VisionEncoderDecoderModel
 from transformers import TrOCRProcessor
 from paddleocr import PaddleOCR
 
-cap = cv2.VideoCapture("videos/22.mp4")  # For videos
+cap = cv2.VideoCapture(0)  # For videos
 
 model = YOLO("best.pt") # after training update the location of best.pt
 
-device = torch.device("mps") # change to cuda for windows gpu or keep it as cpu
+# Select device: prefer CUDA, then MPS (macOS), otherwise CPU
+if torch.cuda.is_available():
+    device_str = "cuda"
+elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+    device_str = "mps"
+else:
+    device_str = "cpu"
+# Also keep a torch.device object for tensor operations
+device = torch.device(device_str)  # used with .to(device) for tensors
 
 classNames = ["with helmet", "without helmet", "rider", "number plate"]
 num = 0
@@ -36,7 +44,7 @@ while True:
     if not success:
         break
     new_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    results = model(new_img, stream=True, device="mps")
+    results = model(new_img, stream=True, device=device_str)
     for r in results:
         boxes = r.boxes
         li = dict()
