@@ -8,7 +8,7 @@ from transformers import VisionEncoderDecoderModel
 from transformers import TrOCRProcessor
 from paddleocr import PaddleOCR
 
-cap = cv2.VideoCapture(0)  # For videos
+cap = cv2.VideoCapture('videos/5.mp4')  # For videos
 
 model = YOLO("best.pt") # after training update the location of best.pt
 
@@ -33,7 +33,7 @@ fps = int(cap.get(cv2.CAP_PROP_FPS))
 
 # initialize the FourCC and a video writer object
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
-output = cv2.VideoWriter('output.mp4', fourcc, fps, (frame_width, frame_height))
+output = cv2.VideoWriter('output6.mp4', fourcc, fps, (frame_width, frame_height))
 
 
 ocr = PaddleOCR(use_angle_cls=True, lang='en')  # need to run only once to download and load model into memory
@@ -112,7 +112,12 @@ while True:
         li = list()
         rider_box = list()
 
-        # Exit the program if the 'q' key is pressed
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            output.release()
+        # Check for keypresses and window close (q/Q/ESC)
+        key = cv2.waitKey(1) & 0xFF
+        if key in (ord('q'), ord('Q'), 27) or cv2.getWindowProperty('Video', cv2.WND_PROP_VISIBLE) < 1:
             break
+
+# Cleanup
+output.release()
+cap.release()
+cv2.destroyAllWindows()
